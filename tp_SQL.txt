@@ -1,0 +1,237 @@
+/* ejercicio 1 */
+SELECT * FROM carreras;
+
+/* ejercicio 2 */
+SELECT nombre, apellido
+FROM estudiantes
+WHERE idcarrera = (SELECT idcarrera FROM carreras WHERE nombre = 'Tecnicatura Superior en Análisis de Sistemas');
+
+/* ejercicio 3 */
+SELECT nombre
+FROM materias
+WHERE idcarrera = 1 AND aniocursado = 1; -- Asegúrate de que 'año' sea la columna correcta
+
+/* ejercicio 4 */
+SELECT c.nombre AS carrera, COUNT(e.idestudiante) AS cantidad_estudiantes
+FROM carreras c
+LEFT JOIN estudiantes e ON c.idcarrera = e.idcarrera
+GROUP BY c.nombre;
+
+
+/* ejercicio 5 */
+SELECT *
+FROM inscripciones
+WHERE estado = 'Activo';
+
+/* ejercicio 6 */
+SELECT * 
+FROM estudiantes 
+WHERE dni = '41285952';
+
+/* ejercicio 7 */
+SELECT m1.nombre AS 'Materia Padre', m2.nombre AS 'Materia Hijo' 
+FROM materias m1 JOIN correlatividades c ON m1.idmateria = c.idmateriapadre JOIN materias m2 ON c.idmateriahijo = m2.idmateria;
+
+/* ejercicio 8 */
+SELECT e.nombre, e.apellido, AVG(n.valor) AS promedio_notas
+FROM estudiantes e
+JOIN inscripciones i ON e.idestudiante = i.idestudiante
+JOIN notas n ON i.idinscripcion = n.idinscripcion
+GROUP BY e.nombre, e.apellido;
+
+/* ejercicio 9 */
+SELECT m.nombre AS 'Materia', ms.fechahora AS 'Fecha Mesa', ms.fechahora AS 'Hora Mesa'
+FROM materias m
+JOIN mesas ms ON m.idmateria = ms.idmateria
+WHERE m.nombre = 'Programacion I';
+
+/* ejercicio 10 */
+SELECT r.tipo AS Rol, p.nombre AS Permiso
+FROM roles r
+JOIN roles_permisos rp ON r.idrol = rp.idrol
+JOIN permisos p ON rp.idpermiso = p.idpermiso;
+
+/* ejercicio 11 */
+SELECT u.nombreusuario
+FROM usuarios u
+JOIN roles r ON u.idrol = r.idrol
+WHERE r.tipo = 'Estudiante';
+
+/* ejercicio 12 */
+SELECT modulo, GROUP_CONCAT(nombre SEPARATOR ', ') AS Permisos
+FROM permisos
+GROUP BY modulo;
+
+/* ejercicio 13 */
+SELECT e.nombre, e.apellido, em.fechapreinscripcion
+FROM estudiantes e
+JOIN estudiantes_mesas em ON e.idestudiante = em.idestudiante
+WHERE em.fechapreinscripcion >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH);
+
+/* ejercicio 14 */
+SELECT tn.descripcion AS TipoNota, n.valor AS Nota, m.nombre AS Materia
+FROM notas n
+JOIN tiponotas tn ON n.idtiponota = tn.idtiponota
+JOIN materias m ON n.idmateria = m.idmateria
+GROUP BY tn.descripcion, n.valor, m.nombre;
+
+/* ejercicio 15 */
+UPDATE estudiantes
+SET direccion = 'Nueva Dirección 123'
+WHERE dni = '41285952';
+
+/* ejercicio 16 */
+DELETE FROM inscripciones
+WHERE idinscripcion = 5;
+
+/* ejercicio 17 */
+INSERT INTO usuarios (nombre, clave, idrol, dni, apellido, correo, nombreusuario)
+VALUES ('Laura', '1234567890', (SELECT idrol FROM roles WHERE tipo = 'Estudiante'), '33445566', 'Gomez', 'laura.gomez@example.com', 'laurag');
+
+/* ejercicio 18 */
+SELECT e.nombre, e.apellido, m.nombre AS materia, i.estado
+FROM inscripciones i
+JOIN estudiantes e ON i.idestudiante = e.idestudiante
+JOIN materias m ON i.idmateria = m.idmateria;
+
+/* ejercicio 19 */
+SELECT e.nombre, e.apellido, COUNT(*) AS inscripciones_activas
+FROM inscripciones i
+JOIN estudiantes e ON i.idestudiante = e.idestudiante
+WHERE i.estado = 'Activo'
+GROUP BY e.idestudiante, e.nombre, e.apellido
+HAVING COUNT(*) = (
+    SELECT COUNT(*) 
+    FROM inscripciones sub_i
+    WHERE sub_i.estado = 'Activo'
+    GROUP BY sub_i.idestudiante
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+);
+
+/* ejercicio 20 */
+SELECT p.nombre AS permiso, p.descripcion
+FROM usuarios u
+JOIN usuarios_permisos up ON u.idusuario = up.idusuario
+JOIN permisos p ON up.idpermiso = p.idpermiso
+WHERE u.nombreusuario = 'ivan01';
+
+/* ejercicio 21 */
+SELECT nombre, apellido
+FROM estudiantes
+WHERE YEAR(fechanacimiento) = 2003;
+
+SELECT nombre, apellido
+FROM estudiantes
+WHERE YEAR(fechanacimiento) >= 1999;
+
+/* ejercicio 22 */
+SELECT m.nombre
+FROM materias m
+LEFT JOIN correlatividades c1 ON m.idmateria = c1.Idmateriapadre
+LEFT JOIN correlatividades c2 ON m.idmateria = c2.idmateriahijo
+WHERE c1.Idmateriapadre IS NULL AND c2.idmateriahijo IS NULL;
+
+/* ejercicio 23 */
+SELECT m.nombre AS materia, MAX(i.fechainscripcion) AS ultima_fecha
+FROM materias m
+JOIN inscripciones i ON m.idmateria = i.idmateria  
+GROUP BY m.idmateria, m.nombre;
+
+/* ejercicio 24 */
+SELECT e.nombre, e.apellido
+FROM estudiantes e
+LEFT JOIN inscripciones i ON e.idestudiante = i.idestudiante
+WHERE i.idinscripcion IS NULL;
+
+/* ejercicio 25 */
+SELECT aniocursado, COUNT(*) AS cantidad_materias
+FROM materias
+GROUP BY aniocursado;
+
+/* ejercicio 26 */
+SELECT u.nombre, COUNT(up.idpermiso) AS cantidad_permisos
+FROM usuarios u
+JOIN usuarios_permisos up ON u.idusuario = up.idusuario
+GROUP BY u.idusuario, u.nombre
+HAVING COUNT(up.idpermiso) > 1
+ORDER BY u.nombre;
+
+/* ejercicio 27 */
+SELECT m.nombre AS nombre_materia, COUNT(i.idinscripcion) AS cantidad_estudiantes
+FROM materias m
+JOIN inscripciones i ON m.idmateria = i.idmateria
+GROUP BY m.idmateria, m.nombre
+HAVING COUNT(i.idinscripcion) > 10
+ORDER BY cantidad_estudiantes DESC;
+
+/* ejercicio 28 */
+SELECT nombre, 
+       apellido, 
+       fechanacimiento, 
+       YEAR(CURDATE()) - YEAR(fechanacimiento) - 
+       (DATE_FORMAT(CURDATE(), '%m%d') < DATE_FORMAT(fechanacimiento, '%m%d')) AS edad
+FROM estudiantes;
+
+/* ejercicio 29 */
+SELECT c.nombre
+FROM carreras c
+LEFT JOIN estudiantes e ON c.idcarrera = e.idcarrera
+WHERE e.idcarrera IS NULL;
+
+/* ejercicio 30 */
+SELECT m.nombre AS materia, tn.descripcion AS tipo_nota, AVG(n.valor) AS promedio_nota
+FROM notas n
+JOIN materias m ON n.idmateria = m.idmateria
+JOIN tiponotas tn ON n.idtiponota = tn.idtiponota
+GROUP BY m.nombre, tn.descripcion;
+
+/* ejercicio 31 */
+SELECT e.nombre, e.apellido, COUNT(DISTINCT e.idcarrera) AS cantidad_carreras
+FROM estudiantes e
+GROUP BY e.idestudiante
+HAVING COUNT(DISTINCT e.idcarrera) > 1;
+
+/* ejercicio 32 */
+SELECT c.nombre AS carrera, COUNT(m.idmateria) AS cantidad_materias
+FROM carreras c
+JOIN materias m ON c.idcarrera = m.idcarrera
+GROUP BY c.nombre
+ORDER BY cantidad_materias DESC
+LIMIT 1;
+
+/* ejercicio 33 */
+SELECT *
+FROM estudiantes
+WHERE correo IS NULL OR correo = '';
+
+/* ejercicio 34 */
+SELECT u.*
+FROM usuarios u
+JOIN roles r ON u.idrol = r.idrol
+ORDER BY r.tipo ASC, u.nombre ASC;
+
+/* ejercicio 35 */
+SELECT m.nombre AS materia, ms.fininscripcion
+FROM materias m
+JOIN mesas ms ON m.idmateria = ms.idmateria
+WHERE ms.fininscripcion < CURRENT_DATE;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
